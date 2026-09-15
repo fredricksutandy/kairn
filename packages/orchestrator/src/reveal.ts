@@ -10,6 +10,27 @@ import { ScrollTrigger, gsap } from './gsap.ts';
 
 const DISTANCE = 24;
 const DURATION = 0.8;
+const START = 'top 85%';
+
+/** Idempotent: the batch and the safety net below can both reach an element. */
+function reveal(element: HTMLElement): void {
+  if (element.dataset.revealed !== undefined) return;
+  element.dataset.revealed = '';
+
+  element.style.willChange = 'transform, opacity';
+  gsap.to(element, {
+    opacity: 1,
+    y: 0,
+    duration: DURATION,
+    delay: Number(element.dataset.revealDelay) || 0,
+    ease: 'power2.out',
+    // Stripped on completion rather than onLeave: once revealed the element
+    // never animates again, so the layer has nothing left to do.
+    onComplete: () => {
+      element.style.willChange = '';
+    },
+  });
+}
 
 export function startReveal(root: HTMLElement): void {
   const elements = [...root.querySelectorAll<HTMLElement>('[data-reveal]')];
@@ -21,23 +42,26 @@ export function startReveal(root: HTMLElement): void {
   gsap.set(elements, { opacity: 0, y: DISTANCE });
 
   ScrollTrigger.batch(elements, {
-    start: 'top 85%',
+    start: START,
     onEnter: (batch) => {
-      for (const element of batch as HTMLElement[]) {
-        element.style.willChange = 'transform, opacity';
-        gsap.to(element, {
-          opacity: 1,
-          y: 0,
-          duration: DURATION,
-          delay: Number(element.dataset.revealDelay) || 0,
-          ease: 'power2.out',
-          // Stripped on completion rather than onLeave: once revealed the
-          // element never animates again, so the layer has nothing left to do.
-          onComplete: () => {
-            element.style.willChange = '';
-          },
-        });
-      }
+      for (const element of batch as HTMLElement[]) reveal(element);
+    },
+  });
+
+  /*
+   * Found by the adversarial harness: anything inside the final screenful can
+   * never reach `top 85%`, because the page runs out of scroll before it gets
+   * there. The element simply stays invisible forever.
+   *
+   * On a real invitation that is the closing section — the last line a guest is
+   * meant to read — so it is not an edge case worth tolerating. When the page
+   * bottom reaches the viewport bottom, reveal whatever is still hidden.
+   */
+  ScrollTrigger.create({
+    trigger: root,
+    start: 'bottom bottom',
+    onEnter: () => {
+      for (const element of elements) reveal(element);
     },
   });
 }

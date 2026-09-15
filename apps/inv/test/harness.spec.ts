@@ -58,8 +58,23 @@ for (const order of permutations(IDS)) {
 
   test(`composition survives: ${name}`, async ({ page }) => {
     const errors: string[] = [];
+
+    // The renderer ships no icon yet, so the browser's automatic /favicon.ico
+    // and /apple-touch-icon.png requests 404 on every page. That is noise from
+    // the environment, not a signal from the orchestrator. Scoped narrowly on
+    // purpose: any other failed request still fails the test.
+    page.on('response', (response) => {
+      const path = new URL(response.url()).pathname;
+      const isIconProbe = path === '/favicon.ico' || path.startsWith('/apple-touch-icon');
+      if (response.status() >= 400 && !isIconProbe) {
+        errors.push(`HTTP ${response.status()} ${path}`);
+      }
+    });
     page.on('console', (message) => {
-      if (message.type() === 'error') errors.push(message.text());
+      // Console text carries no URL, so resource failures are matched by the
+      // response listener above instead of here.
+      const isResourceFailure = message.text().startsWith('Failed to load resource');
+      if (message.type() === 'error' && !isResourceFailure) errors.push(message.text());
     });
     page.on('pageerror', (error) => errors.push(error.message));
 
@@ -98,27 +113,65 @@ test('pinner holds its element fixed for the whole pin range', async ({ page }) 
   expect(Math.abs(second!.y - first!.y)).toBeLessThan(12);
 });
 
-test('bleeder decoration crosses the section seam and is not clipped', async ({ page }) => {
-  await openGate(page, ['bleeder', 'hog']);
-  await page.waitForTimeout(400);
+/** Is the pixel just inside the decoration's bottom edge actually the decoration? */
+function hitTestBelowSeam(page: Page) {
+  return page.evaluate(() => {
+    const decoration = document.querySelector('[data-testid="bleed-decoration"]')!;
+    const box = decoration.getBoundingClientRect();
+    return document.elementFromPoint(box.left + box.width / 2, box.bottom - 10) === decoration;
+  });
+}
 
-  const overhang = await page.evaluate(() => {
+function seamOverhang(page: Page) {
+  return page.evaluate(() => {
     const section = document.querySelector('[data-harness="bleeder"]')!;
     const decoration = document.querySelector('[data-testid="bleed-decoration"]')!;
     return decoration.getBoundingClientRect().bottom - section.getBoundingClientRect().bottom;
   });
-  expect(overhang).toBeGreaterThan(100);
+}
 
-  // Geometry alone would still pass if an ancestor clipped it, so confirm the
-  // pixel below the seam actually belongs to the decoration.
-  const visibleBelowSeam = await page.evaluate(() => {
-    const decoration = document.querySelector('[data-testid="bleed-decoration"]')!;
-    const box = decoration.getBoundingClientRect();
-    return (
-      document.elementFromPoint(box.left + box.width / 2, box.bottom - 10) === decoration
-    );
+test('bleeder decoration crosses the section seam, unclipped', async ({ page }) => {
+  await openGate(page, ['bleeder']);
+  await page.waitForTimeout(400);
+
+  expect(await seamOverhang(page)).toBeGreaterThan(100);
+
+  // getBoundingClientRect reports the full box even when an ancestor clips it,
+  // so the overhang above proves nothing about clipping on its own. Walk the
+  // ancestors instead: any non-visible overflow would cut the bleed off, and a
+  // section root is one `overflow: hidden` away from doing exactly that.
+  const clippingAncestor = await page.evaluate(() => {
+    let element = document.querySelector('[data-testid="bleed-decoration"]')!.parentElement;
+    while (element && element !== document.body) {
+      const style = getComputedStyle(element);
+      if (style.overflowX !== 'visible' || style.overflowY !== 'visible') {
+        return element.className || element.tagName;
+      }
+      element = element.parentElement;
+    }
+    return null;
   });
-  expect(visibleBelowSeam).toBe(true);
+  expect(clippingAncestor).toBeNull();
+});
+
+/**
+ * The reason seam-crossing decorations belong to the theme layer.
+ *
+ * `isolation: isolate` gives every section root its own stacking context, so a
+ * decoration's z-index is scoped to its own section and cannot lift it above a
+ * later sibling. The overhang is still there in geometry — nothing clips it —
+ * but the next section paints straight over it.
+ *
+ * A variant therefore cannot own a decoration that crosses into the section
+ * below, no matter what z-index it sets. Page-level layers keyed to the theme
+ * can, because the section below might not exist.
+ */
+test('a following section paints over the bleed, geometry intact', async ({ page }) => {
+  await openGate(page, ['bleeder', 'hog']);
+  await page.waitForTimeout(400);
+
+  expect(await seamOverhang(page)).toBeGreaterThan(100);
+  expect(await hitTestBelowSeam(page)).toBe(false);
 });
 
 test('hog is active only while onscreen', async ({ page }) => {
