@@ -84,9 +84,14 @@ git diff --quiet HEAD^ HEAD -- ./apps/inv ./packages/sections ./packages/orchest
 9. Supabase
 ```
 
-Currently at step 3. Step 1 is complete — see `docs/00-phase-1.md`. Step 2 is
-complete: `packages/orchestrator` — the lifecycle is documented at the top of
-its `src/index.ts`, and the adversarial harness is its first real consumer.
+Currently at step 4. Steps 1-3 are complete — see `docs/00-phase-1.md` and
+`docs/00-phase-3.md`. The orchestrator lifecycle is documented at the top of
+`packages/orchestrator/src/index.ts`.
+
+**Variants import GSAP from `@kairn/orchestrator`, never from `gsap`.** React
+runs child effects before parent effects, so a section that imports GSAP
+directly creates its triggers before the plugin is registered — it warns, does
+nothing, then throws. See `packages/orchestrator/src/gsap.ts`.
 
 **Step 7 is a gate, not a checkpoint.** If any composition fails on the device,
 stop and fix the orchestrator. Do not proceed to the builder.
@@ -159,18 +164,25 @@ never add a required field to a shipped slot.
 
 | Tool | Scope | How |
 |---|---|---|
-| [`ponytail`](https://github.com/dietrichgebert/ponytail) | all code. The ladder runs before writing anything | Claude Code plugin. Agent-side only, no CI surface |
+| [`code-simplifier`](https://github.com/anthropics/claude-plugins-official/tree/main/plugins/code-simplifier) | all code, after writing it | Vendored at `.claude/agents/`, so it loads in cloud sessions too |
+| [`superpowers`](https://github.com/obra/superpowers) | steps 4, 7, 8 — see below | **Local only.** Not vendored |
 | [`impeccable`](https://github.com/pbakaus/impeccable) | `apps/app` and the landing page only | Claude Code plugin now; CI job at step 8 |
 
-**Neither touches `packages/sections`.** Those are hand-designed from real
+**None touches `packages/sections`.** Those are hand-designed from real
 invitation references. A design agent will normalise them into genericness.
 
-`ponytail` is vendored into `.claude/skills/`, so it loads in cloud sessions
-too — a `/plugin install` only ever reaches the machine it ran on. **Load the
-`ponytail` skill before writing code**, and treat its ladder as subordinate to
-this file: the build order below is mandated, not speculative, so its first
-rung never justifies skipping the orchestrator or the adversarial harness.
-See `.claude/skills/README.md`.
+A `/plugin install` only ever reaches the machine it ran on, so anything needed
+in a cloud session has to be committed here. `code-simplifier` is a pass, not a
+mode: it preserves functionality exactly and polishes what exists. It does not
+subtract, so nothing in the toolchain now prevents code volume growing — the
+one rule that did is kept below under **Never**, and a mid-range Android makes
+it a product requirement rather than a style preference.
+
+`superpowers` is a methodology and is deliberately not vendored — pairing two
+always-on rulesets means one silently loses. Reach for it locally at step 4
+(TDD, where composition validation is real branching logic), step 7
+(systematic-debugging, for a desync on a real device) and step 8 (brainstorming,
+the only genuinely undecided design here). See `.claude/skills/README.md`.
 
 `impeccable detect` refuses to scan a Next.js project statically and exits 0 —
 it needs a running server URL. So its CI job must build, start, and scan the

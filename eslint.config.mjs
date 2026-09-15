@@ -38,8 +38,14 @@ export default tseslint.config(
    * are hand-designed from real invitation references and are the one place no
    * design agent normalises. CI is the only check they get.
    */
+  /*
+   * The harness sections are held to the same rules as a real variant,
+   * including never calling refresh() — that is the point of them. If the rules
+   * did not apply here, the harness would stop being a fair model of what it is
+   * supposed to be adversarial about.
+   */
   {
-    files: ['packages/sections/**/*.{ts,tsx}'],
+    files: ['packages/sections/**/*.{ts,tsx}', 'apps/inv/app/harness/**/*.{ts,tsx}'],
     ...kairn.configs.sections,
   },
 

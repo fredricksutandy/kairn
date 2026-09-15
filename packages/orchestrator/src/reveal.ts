@@ -6,8 +6,7 @@
  * variants written months apart — which is what makes a mix-and-match page read
  * as one designed piece instead of a collage.
  */
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { ScrollTrigger, gsap } from './gsap.ts';
 
 const DISTANCE = 24;
 const DURATION = 0.8;

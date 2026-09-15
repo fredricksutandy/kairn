@@ -1,0 +1,96 @@
+/*
+ * Harness styling. Token-only and svh-only, same rules as a real variant —
+ * tools/lint-css scans this directory, so the harness also proves the guard
+ * holds on realistic section CSS.
+ */
+
+.harness {
+  display: grid;
+  place-content: center;
+  gap: 1rem;
+  padding: 2rem;
+  text-align: center;
+  color: var(--c-text);
+  font-family: var(--font-body);
+}
+
+/*
+ * Section roots carry position and isolation and nothing else. No transform,
+ * filter or will-change here — each creates a containing block, which breaks
+ * position: fixed, which is how the pinner pins.
+ */
+.harness--pinner {
+  min-height: 300svh;
+  background: var(--c-surface);
+}
+
+.harness__pin {
+  display: grid;
+  place-content: center;
+  gap: 1rem;
+  min-height: 100svh;
+}
+
+.harness--bleeder {
+  min-height: 80svh;
+  background: var(--c-bg);
+}
+
+/* Overflows the section's own bottom edge by exactly 120px. */
+.harness__bleed {
+  position: absolute;
+  bottom: -120px;
+  left: 50%;
+  width: 160px;
+  height: 200px;
+  margin-left: -80px;
+  border-radius: 50%;
+  background: var(--c-accent);
+  z-index: 1;
+}
+
+.harness--hog {
+  min-height: 300svh;
+  background: var(--c-surface);
+}
+
+.harness__parallax {
+  width: 60%;
+  height: 40svh;
+  margin: 0 auto;
+  background: var(--c-muted);
+}
+
+.harness__swarm {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.harness__child {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--c-accent);
+}
+
+/* Spread the forty children without forty rules. */
+.harness__child:nth-child(4n + 1) { transform: translate(-40vw, -20svh); }
+.harness__child:nth-child(4n + 2) { transform: translate(20vw, 10svh); }
+.harness__child:nth-child(4n + 3) { transform: translate(-10vw, 30svh); }
+.harness__child:nth-child(4n) { transform: translate(35vw, -35svh); }
+
+.harness-gate {
+  position: fixed;
+  inset: 0;
+  z-index: 99;
+  display: grid;
+  place-content: center;
+  background: var(--c-bg);
+  color: var(--c-text);
+  font-family: var(--font-display);
+}

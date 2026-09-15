@@ -21,13 +21,15 @@
  * so fonts and images can settle without desyncing a trigger. The tap is also
  * the user gesture browsers demand before audio may play.
  */
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Lenis from 'lenis';
-import { startParallax } from './parallax';
-import { revealStatic, startReveal } from './reveal';
+import { ScrollTrigger, gsap } from './gsap.ts';
+import { startParallax } from './parallax.ts';
+import { revealStatic, startReveal } from './reveal.ts';
 
-export { parallaxOffset } from './parallax';
+export { parallaxOffset } from './parallax.ts';
+// Variants import GSAP through here so the plugin is registered before any
+// section effect runs. See src/gsap.ts.
+export { gsap, ScrollTrigger } from './gsap.ts';
 
 export interface OrchestratorOptions {
   /** The page element containing every section. */
@@ -47,13 +49,6 @@ export interface Orchestrator {
 const REFRESH_DEBOUNCE_MS = 200;
 
 export function createOrchestrator({ root, audio }: OrchestratorOptions): Orchestrator {
-  gsap.registerPlugin(ScrollTrigger);
-
-  // The iOS URL bar collapses on scroll, which fires resize, which refreshes
-  // mid-scroll and shows as a visible jump. Full-height sections use svh so
-  // they do not need the resize either.
-  ScrollTrigger.config({ ignoreMobileResize: true });
-
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const { documentElement, body } = document;
   const scrollLock = [documentElement.style.overflow, body.style.overflow];

@@ -48,6 +48,42 @@ jobs:
       - name: Build
         run: pnpm run build
 
-  # Build order step 3 adds a second job here: the adversarial harness
-  # (pinner, bleeder, hog) composed every way and asserted to survive. It is a
-  # permanent fixture, not a scaffold — see docs/03-animation-contract.md.
+  # The adversarial harness: pinner, bleeder and hog composed every way and
+  # asserted to survive. A permanent fixture, not a scaffold — when a real
+  # variant later breaks, this tells you it is the variant and not the system.
+  #
+  # Separate from `verify` so a red harness is legible at a glance: this is the
+  # job that fails when the orchestrator desyncs.
+  harness:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Build renderer
+        run: pnpm --filter @kairn/inv build
+
+      - name: Adversarial harness
+        run: pnpm run test:harness
+        env:
+          CI: 'true'
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: harness-failures
+          path: test-results/
+          retention-days: 7

@@ -1,58 +1,54 @@
-# Vendored agent skills
+# Vendored agent tooling
 
-These are committed to the repo on purpose. A `/plugin install` writes to
+Committed to the repo on purpose. A `/plugin install` writes to
 `~/.claude/plugins/` on one machine and never leaves it — cloud sessions get a
-fresh container and see nothing. Skills committed here load everywhere: local
-CLI, Claude Code on the web, and for anyone who clones.
+fresh container and see nothing. What lives here loads everywhere: local CLI,
+Claude Code on the web, and for anyone who clones.
 
-## ponytail
+## `../agents/code-simplifier.md`
 
-Source: <https://github.com/DietrichGebert/ponytail> · MIT (see
-`PONYTAIL-LICENSE`) · vendored at **v4.10.0**, commit `e3ba2aa`.
+Source: [anthropics/claude-plugins-official](https://github.com/anthropics/claude-plugins-official/blob/main/plugins/code-simplifier/agents/code-simplifier.md).
+Vendored verbatim.
 
-A reuse-first decision ladder for writing code. It is the same instinct as
-`CLAUDE.md`'s *never reach for a library when the platform has it* — rung 4 of
-its ladder says exactly that.
+A pass, not a mode: it runs over recently-changed code and applies
+clarity/consistency fixes while **preserving 100% of functionality**. It will
+never delete a speculative abstraction or refuse a dependency — it polishes what
+exists.
 
-| Vendored | Why |
-|---|---|
-| `ponytail` | the ladder itself |
-| `ponytail-review` | over-engineering pass on a diff |
-| `ponytail-audit` | same, repo-wide |
-| `ponytail-debt` | collects the `ponytail:` markers the ladder tells you to leave |
+Cloud sessions already have a near-identical `/simplify` skill, so this one
+mainly earns its keep locally.
 
-Not vendored: `ponytail-gain` (a benchmark scoreboard, reads `benchmarks/`
-which does not exist here) and `ponytail-help` (a quick reference for skills
-that are listed anyway).
+## Why ponytail is no longer here
 
-### The hooks are deliberately omitted
+It was vendored and then removed deliberately. It is a *mode* — active every
+response, changing what gets built — which collides head-on with superpowers'
+mandated TDD and planning phases. Two always-on rulesets legislating the same
+decisions means one silently loses, which is the failure `CLAUDE.md` already
+names for antislop/hallmark alongside impeccable.
 
-Upstream ships 758 lines of JS on `SessionStart`, `SubagentStart` and
-`UserPromptSubmit` to keep the mode active automatically. They make no network
-calls — that was checked — but they are third-party code executing on every
-prompt, and there is a zero-code way to get the same effect: `CLAUDE.md` is
-read at the start of every session and already overrides defaults, so it points
-at the skill instead. If the ladder ever needs to be automatic in a way a
-pointer cannot achieve, review those scripts line by line first.
+Its load-bearing rung survives without it: **never reach for a library when the
+platform has it** is already in `CLAUDE.md` and already auto-loads. That is the
+rung that matters for this project — a mid-range Android makes less code a
+product requirement, not a style preference.
 
-Consequence: the mode is invoked, not ambient. `/ponytail` to raise it
-explicitly.
+Consequence to stay honest about: nothing in the toolchain now *prevents* code
+volume growing. `code-simplifier` polishes, it does not subtract. If the repo
+starts accreting, that is the signal to bring prevention back.
 
-### Where CLAUDE.md wins
+## superpowers — run it locally, it is not here
 
-`CLAUDE.md` overrides these skills wherever they disagree. Two places they do:
+[obra/superpowers](https://github.com/obra/superpowers) cannot reach a cloud
+session unless vendored, and it is a methodology rather than a skill, so it is
+deliberately not vendored. Its TDD discipline closes one real gap found in
+practice: tests here assert that a rule *fires*, not what its message *says*,
+and a wrong message shipped once already.
 
-**The build order is not speculative.** Ponytail's first rung is *does this
-need to exist at all — speculative need, skip it*. The orchestrator and the
-adversarial harness both look speculative from inside a single task: nothing
-consumes them yet. They are mandated, in order, and the harness is a permanent
-CI fixture. Do not let the ladder skip them.
+Worth reaching for locally at:
 
-**`packages/sections` is out of scope entirely.** `CLAUDE.md` puts it off
-limits to design agents because variants are hand-designed from real
-invitation references and normalising them into genericness is the failure
-mode. Ponytail is not a design agent, but "fewest files, shortest diff" pushes
-the same direction. Variants are allowed to be long and specific.
+| Step | Skill | Why |
+|---|---|---|
+| 4 manifest + registry | TDD | Composition validation is real branching logic, unlike the orchestrator's DOM work |
+| 7 device gate | systematic-debugging | A desync on a real Android is exactly a 4-phase root-cause hunt |
+| 8 builder UI | brainstorming | The only genuinely undecided design in the project |
 
-Upgrading: re-copy the `skills/<name>/SKILL.md` files from a newer tag and
-update the version and commit recorded above.
+Do not pair it with a second always-on ruleset.

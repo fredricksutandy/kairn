@@ -4,7 +4,7 @@
  * Per-element ScrollTriggers would put the trigger count in the hundreds; the
  * contract says one batched ticker, so this is it.
  */
-import gsap from 'gsap';
+import { gsap } from './gsap.ts';
 
 /**
  * Vertical offset in pixels for an element, from how far its centre sits from
