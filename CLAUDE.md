@@ -88,6 +88,9 @@ Currently at step 4. Steps 1-3 are complete — see `docs/00-phase-1.md` and
 `docs/00-phase-3.md`. The orchestrator lifecycle is documented at the top of
 `packages/orchestrator/src/index.ts`.
 
+**Starting a session? Read `docs/HANDOVER.md`** — current state, what step 4
+needs, and the traps that cost a debugging cycle each to find.
+
 **Variants import GSAP from `@kairn/orchestrator`, never from `gsap`.** React
 runs child effects before parent effects, so a section that imports GSAP
 directly creates its triggers before the plugin is registered — it warns, does
