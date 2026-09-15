@@ -125,6 +125,40 @@ starts it, and scans the URL. Not before — `apps/app` is a placeholder until
 then, so today it would guard nothing. Pin it as a devDependency rather than
 resolving `npx impeccable` from the network at build time.
 
+### Verified recipe for that job
+
+Tried against the running placeholder. It works, and it gates:
+
+```bash
+next build && next start -p 3111 &
+# wait for readiness, then:
+IMPECCABLE_BROWSER=<path to chromium> impeccable detect http://localhost:3111
+```
+
+Three things that are not obvious and cost an hour to find:
+
+1. **URL scanning needs a real Chromium.** With none installed it errors out.
+   Point `IMPECCABLE_BROWSER` at one, or install Chrome on the runner.
+2. **It must not run as root** — Chromium refuses to launch as root without
+   `--no-sandbox`, and impeccable does not pass that flag. GitHub's runners are
+   non-root, so CI is fine; a root container is not.
+3. **Exit code 2 when anti-patterns are found**, 0 when clean. That is what
+   makes it a gate rather than a report.
+
+For the record, it found one real thing on the placeholder page —
+`body-text-viewport-edge`, a `<p>` flush against the viewport with no gutter.
+Left as is: step 8 replaces that page wholesale. It is noted because it
+demonstrates the detector fires on real output rather than passing everything.
+
+### hallmark — do not add
+
+`nutlope/hallmark` is a skill, not a CLI. It has no CI surface at all, so it
+cannot cover impeccable's need for a running server — it is the same category
+of tool as `ponytail`, not a substitute for the scan.
+
+`CLAUDE.md` already forbids it: *do not install antislop or hallmark alongside
+impeccable, overlapping rule sets fight.* That rule stands.
+
 **Both tools must stay off `packages/sections`.** Those files are hand-designed
 from real invitation references; a design agent normalises them into
 genericness. The scoping is stated in `CLAUDE.md` and is not enforced
