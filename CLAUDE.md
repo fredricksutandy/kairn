@@ -163,6 +163,13 @@ never add a required field to a shipped slot.
 **Neither touches `packages/sections`.** Those are hand-designed from real
 invitation references. A design agent will normalise them into genericness.
 
+`ponytail` is vendored into `.claude/skills/`, so it loads in cloud sessions
+too — a `/plugin install` only ever reaches the machine it ran on. **Load the
+`ponytail` skill before writing code**, and treat its ladder as subordinate to
+this file: the build order below is mandated, not speculative, so its first
+rung never justifies skipping the orchestrator or the adversarial harness.
+See `.claude/skills/README.md`.
+
 `impeccable detect` refuses to scan a Next.js project statically and exits 0 —
 it needs a running server URL. So its CI job must build, start, and scan the
 URL, or it is a step that always passes. See `docs/00-phase-1.md`.
