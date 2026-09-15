@@ -155,13 +155,17 @@ never add a required field to a shipped slot.
 
 ## Tooling
 
-| Tool | Scope |
-|---|---|
-| `ponytail` | all code. The ladder runs before writing anything |
-| `impeccable` | `apps/app` and the landing page only |
+| Tool | Scope | How |
+|---|---|---|
+| [`ponytail`](https://github.com/dietrichgebert/ponytail) | all code. The ladder runs before writing anything | Claude Code plugin. Agent-side only, no CI surface |
+| [`impeccable`](https://github.com/pbakaus/impeccable) | `apps/app` and the landing page only | Claude Code plugin now; CI job at step 8 |
 
 **Neither touches `packages/sections`.** Those are hand-designed from real
 invitation references. A design agent will normalise them into genericness.
+
+`impeccable detect` refuses to scan a Next.js project statically and exits 0 —
+it needs a running server URL. So its CI job must build, start, and scan the
+URL, or it is a step that always passes. See `docs/00-phase-1.md`.
 
 Do not install antislop or hallmark alongside impeccable. Overlapping rule sets fight.
 

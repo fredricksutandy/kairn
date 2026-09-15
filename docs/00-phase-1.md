@@ -88,9 +88,45 @@ which is why the good fixture is as load-bearing as the bad one.
   the live renderer.
 - **`noindex` on renderer previews**, keyed off `VERCEL_ENV`.
 
-## Open
+## Tooling — resolved
 
-`ponytail` and `impeccable` are named in the tooling table but are not wired
-into CI, because it is not yet established what they are or where they come
-from. Decide before step 5 — they cover `apps/app` and the landing page, which
-step 8 builds.
+Neither `ponytail` nor `impeccable` belongs in CI today. Both are agent-side
+Claude Code plugins, not build gates.
+
+**[`ponytail`](https://github.com/dietrichgebert/ponytail)** is a ruleset that
+makes an agent apply a reuse-first decision ladder before writing code. It has
+no CI surface at all — it changes what gets written, not what gets rejected.
+Its ladder step "native platform feature? use it" is the same rule as
+`CLAUDE.md`'s *never reach for a library when the platform has it*.
+
+```
+/plugin marketplace add DietrichGebert/ponytail
+/plugin install ponytail@ponytail
+```
+
+**[`impeccable`](https://github.com/pbakaus/impeccable)** has a real
+deterministic CLI (`npx impeccable detect`, 61 detector rules, no API key), so
+it looks CI-wirable. It is not, yet — **on a Next.js project the static scan
+refuses to analyse the source and exits 0**:
+
+```
+$ npx impeccable detect apps/app
+Next.js project detected (next.config.ts).
+Start the dev server and scan via URL for best results:
+  npx impeccable detect http://localhost:3000
+```
+
+A step that always passes without checking anything is worse than no step: it
+reports green and nothing notices. Wiring it now would be the exact rot
+`tools/lint-proof` exists to prevent.
+
+**Decision:** wire `impeccable` at step 8, as a job that builds `apps/app`,
+starts it, and scans the URL. Not before — `apps/app` is a placeholder until
+then, so today it would guard nothing. Pin it as a devDependency rather than
+resolving `npx impeccable` from the network at build time.
+
+**Both tools must stay off `packages/sections`.** Those files are hand-designed
+from real invitation references; a design agent normalises them into
+genericness. The scoping is stated in `CLAUDE.md` and is not enforced
+mechanically — if either tool ever gains a CI step, that step takes an explicit
+path argument, never the repo root.

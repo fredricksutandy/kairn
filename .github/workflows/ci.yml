@@ -9,6 +9,11 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+# Nothing in this workflow writes to the repo. A dependency that runs code at
+# install or build time inherits this token, so it gets read and nothing else.
+permissions:
+  contents: read
+
 jobs:
   verify:
     runs-on: ubuntu-latest
