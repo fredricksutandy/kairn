@@ -1,0 +1,26 @@
+/*
+ * The same stylesheet written correctly. The proof asserts this passes clean —
+ * a linter that rejects everything is as useless as one that rejects nothing.
+ */
+
+.cover-editorial {
+  --inset: 2rem;
+
+  color: var(--c-text);
+  background: var(--c-bg);
+  border-color: var(--c-muted);
+  font-family: var(--font-display);
+  min-height: 100svh;
+  padding: var(--inset);
+}
+
+.section-root {
+  position: relative;
+  isolation: isolate;
+}
+
+/* Containing-block properties on an inner wrapper are exactly right. */
+.cover-editorial__photo {
+  transform: translateY(8px);
+  will-change: transform;
+}

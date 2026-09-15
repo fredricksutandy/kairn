@@ -1,0 +1,35 @@
+/*
+ * The theme contract.
+ *
+ * This is the only file in packages/sections allowed to contain a colour or a
+ * font literal — it is the definition site, and tools/lint-css exempts it by
+ * name. Every variant references these and nothing else.
+ *
+ * The values below are placeholders. Curated palettes replace them at the
+ * theme layer; the names are the API and do not change.
+ */
+
+:root {
+  --c-bg: #faf8f5;
+  --c-surface: #ffffff;
+  --c-accent: #8b7355;
+  --c-text: #1f1c19;
+  --c-muted: #8a8279;
+
+  --font-display: 'Cormorant Garamond', Georgia, serif;
+  --font-body: 'Jost', system-ui, sans-serif;
+  --font-scale: 1;
+}
+
+/*
+ * Section roots are untouchable. See docs/03-animation-contract.md rule 4:
+ * transform, filter and will-change each create a containing block, which
+ * breaks position: fixed, which is how ScrollTrigger pins.
+ *
+ * isolation: isolate gives every section its own stacking context, so variants
+ * use z-index 1..99 freely with no global registry.
+ */
+.section-root {
+  position: relative;
+  isolation: isolate;
+}

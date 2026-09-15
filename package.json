@@ -1,0 +1,27 @@
+{
+  "name": "kairn",
+  "version": "0.0.0",
+  "private": true,
+  "packageManager": "pnpm@10.33.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "lint": "pnpm run lint:es && pnpm run lint:css",
+    "lint:es": "eslint .",
+    "lint:css": "node tools/lint-css/cli.mjs packages/sections",
+    "lint:proof": "node --test \"tools/lint-proof/*.test.mjs\"",
+    "test:rules": "node --test \"tools/eslint-plugin-kairn/test/*.test.js\"",
+    "test": "pnpm run test:rules && pnpm run lint:proof",
+    "typecheck": "pnpm -r typecheck",
+    "build": "pnpm -r build"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^22.10.2",
+    "eslint": "^10.10.0",
+    "eslint-plugin-kairn": "workspace:*",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.70.0"
+  }
+}

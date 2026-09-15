@@ -1,0 +1,26 @@
+/*
+ * Deliberately broken. Every declaration here violates a rule on purpose, and
+ * tools/lint-proof asserts that the linter rejects it. If this file ever passes
+ * the linter, the guard has silently stopped working.
+ *
+ * eslint.config.mjs ignores this directory so a normal repo-wide run never
+ * sees it.
+ */
+
+.cover-editorial {
+  color: #8b7355;
+  background: rgba(0, 0, 0, 0.4);
+  border-color: white;
+  font-family: 'Cormorant Garamond', serif;
+  min-height: 100vh;
+  padding: var(--c-spacing);
+}
+
+.section-root {
+  transform: translateZ(0);
+}
+
+@font-face {
+  font-family: 'Cormorant Garamond';
+  src: url('/fonts/cormorant.woff2') format('woff2');
+}
