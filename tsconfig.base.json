@@ -11,6 +11,10 @@
     "noImplicitOverride": true,
     "noFallthroughCasesInSwitch": true,
     "verbatimModuleSyntax": true,
+    // Permits (never requires) a .ts specifier. Test files need one so Node can
+    // run them directly with type stripping; source keeps extensionless
+    // specifiers, which is what the bundler resolves.
+    "allowImportingTsExtensions": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,

@@ -42,4 +42,21 @@ export default tseslint.config(
     files: ['packages/sections/**/*.{ts,tsx}'],
     ...kairn.configs.sections,
   },
+
+  /*
+   * The orchestrator gets the same rules, minus one.
+   *
+   * It is the highest-risk file in the repo and the mobile-performance rules
+   * matter more here than anywhere — but `ScrollTrigger.refresh()` is not a
+   * violation here, it is this package's job. One call, one place, after the
+   * cover gate opens. That is exactly what the rule forbids everywhere else.
+   */
+  {
+    files: ['packages/orchestrator/**/*.{ts,tsx}'],
+    ...kairn.configs.sections,
+    rules: {
+      ...kairn.configs.sections.rules,
+      'kairn/no-scrolltrigger-refresh': 'off',
+    },
+  },
 );

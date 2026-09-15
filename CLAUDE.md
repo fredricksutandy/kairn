@@ -84,7 +84,9 @@ git diff --quiet HEAD^ HEAD -- ./apps/inv ./packages/sections ./packages/orchest
 9. Supabase
 ```
 
-Currently at step 2. Step 1 is complete — see `docs/00-phase-1.md`.
+Currently at step 3. Step 1 is complete — see `docs/00-phase-1.md`. Step 2 is
+complete: `packages/orchestrator` — the lifecycle is documented at the top of
+its `src/index.ts`, and the adversarial harness is its first real consumer.
 
 **Step 7 is a gate, not a checkpoint.** If any composition fails on the device,
 stop and fix the orchestrator. Do not proceed to the builder.

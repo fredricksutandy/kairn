@@ -12,7 +12,8 @@
     "lint:css": "node tools/lint-css/cli.mjs packages/sections",
     "lint:proof": "node --test \"tools/lint-proof/*.test.mjs\"",
     "test:rules": "node --test \"tools/eslint-plugin-kairn/test/*.test.js\"",
-    "test": "pnpm run test:rules && pnpm run lint:proof",
+    "test:unit": "node --test \"packages/*/test/*.test.ts\"",
+    "test": "pnpm run test:rules && pnpm run lint:proof && pnpm run test:unit",
     "typecheck": "pnpm -r typecheck",
     "build": "pnpm -r build"
   },
