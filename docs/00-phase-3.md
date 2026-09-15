@@ -35,7 +35,10 @@ Lenis smooths wheel input and driving scroll position directly would bypass the
 thing under test. It runs at a Pixel 5 viewport: the performance target is a
 mid-range Android, not a laptop.
 
-## What it caught immediately
+## What it caught
+
+Two real orchestrator defects, neither visible to lint, typecheck or the unit
+tests. Both needed a browser.
 
 **GSAP plugin registration was ordered wrong, by construction.** React runs
 child effects before parent effects, so a section's `useEffect` created its
@@ -59,6 +62,34 @@ This is exactly the class of bug the harness exists for. It would have surfaced
 at step 5 as "the cover variant is broken", and the hunt would have started in
 the wrong place.
 
+**The last screenful never revealed.** Every composition left exactly one
+element hidden — the tail, the last thing on the page. An element inside the
+final screenful can never reach `top 85%`, because the page runs out of scroll
+before it gets there, so it stays invisible permanently.
+
+On a real invitation that element is the closing section: the last line a guest
+is meant to read. `reveal.ts` now creates one safety trigger at `bottom bottom`
+that reveals anything still hidden when the page bottom meets the viewport
+bottom, and `reveal()` is idempotent so the batch and the net can both reach an
+element without double-tweening.
+
+## What it settled about bleeding
+
+A section-owned decoration **cannot** stay on top across the seam.
+`isolation: isolate` scopes its z-index to its own section's stacking context,
+so any later sibling paints over it no matter what z-index it sets. Nothing
+clips it — the geometry is intact — it is simply covered.
+
+That is the concrete reason seam-crossing decorations belong to the theme
+layer rather than to a variant. Two tests hold the line: one asserts the
+overhang exists and no ancestor clips it, the other asserts a following section
+*does* cover it. The second will fail if anyone later tries to defeat this with
+z-index, which is the point of keeping it.
+
+A note for whoever writes that check next: `getBoundingClientRect` reports the
+full box even when an ancestor clips it, so measuring the overhang proves
+nothing about clipping. Walk the ancestors for non-visible overflow instead.
+
 ## Known gap in the lint guard
 
 `tools/lint-css` flags containing-block properties on a section root by matching
@@ -75,6 +106,23 @@ against CSS, which is a great deal of machinery for one rule.
 
 The harness covers it behaviourally instead: a containing block on a section
 root breaks `position: fixed`, so the pin test fails. Keep that test.
+
+## Running it
+
+Eleven tests, ~40s, green. It needs a fresh build served by a fresh server:
+
+```bash
+pnpm --filter @kairn/inv build && pnpm run test:harness
+```
+
+`reuseExistingServer` is off deliberately. A server left over from an earlier
+build serves a stale chunk manifest — every chunk 500s, hydration dies silently,
+and the whole thing presents as "the gate never enables", which sends you
+looking in entirely the wrong place.
+
+The favicon and apple-touch-icon probes 404 because the renderer ships no icon
+yet; the console assertion ignores those two paths and nothing else. Give the
+renderer an icon and the exception can go.
 
 ## Also settled here
 
